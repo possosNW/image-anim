@@ -2,5 +2,4 @@
 
 interface Env {
 	AUTH_STORAGE: KVNamespace;
-	AUTH_DB: D1Database;
 }
