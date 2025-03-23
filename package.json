@@ -36,31 +36,40 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@remix-run/cloudflare": "2.15.2",
-    "@remix-run/react": "2.15.2",
-    "@remix-run/server-runtime": "2.15.2",
-    "isbot": "5.1.17",
-    "nanoid": "5.0.8",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "@remix-run/cloudflare": "2.16.2",
+    "@remix-run/react": "2.16.2",
+    "@remix-run/server-runtime": "2.16.2",
+    "glob": "^9.3.5",
+    "isbot": "^5.1.17",
+    "nanoid": "^5.0.8",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.5.38",
     "@cloudflare/workers-types": "^4.20250204.0",
-    "@remix-run/dev": "2.15.2",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
-    "@typescript-eslint/eslint-plugin": "8.18.1",
-    "@typescript-eslint/parser": "8.18.1",
-    "autoprefixer": "10.4.20",
-    "eslint": "9.19.0",
-    "postcss": "8.4.49",
-    "tailwindcss": "3.4.17",
-    "typescript": "5.7.2",
-    "vite": "5.4.14",
-    "vite-tsconfig-paths": "5.1.4",
-    "vitest": "2.1.8",
-    "wrangler": "^3.28.2"
+    "@eslint/config-array": "^0.19.2",
+    "@eslint/object-schema": "^2.1.6",
+    "@remix-run/dev": "2.16.2",
+    "@rollup/plugin-inject": "^5.0.5",
+    "@types/react": "18.2.7",
+    "@types/react-dom": "18.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.23.0",
+    "postcss": "^8.4.49",
+    "rimraf": "^4.4.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.3.3",
+    "vite": "^5.4.14",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.4.0"
+  },
+  "overrides": {
+    "@remix-run/dev": {
+      "wrangler": "^4.4.0"
+    }
   },
   "sideEffects": false
 }

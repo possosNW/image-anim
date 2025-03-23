@@ -4,6 +4,7 @@ import {
   cloudflareDevProxyVitePlugin,
 } from "@remix-run/dev";
 import tsconfigPaths from "vite-tsconfig-paths";
+import inject from "@rollup/plugin-inject"; // <-- ✅ Add this import
 import { getLoadContext } from "./load-context";
 
 declare module "@remix-run/cloudflare" {
@@ -39,5 +40,13 @@ export default defineConfig({
   },
   build: {
     minify: true,
+    rollupOptions: {
+      plugins: [
+        inject({
+          // Define global variables to inject (example)
+          // _: "lodash"  // Inject "_" from lodash if needed
+        }),
+      ],
+    },
   },
 });
