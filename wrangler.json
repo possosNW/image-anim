@@ -1,16 +1,23 @@
 {
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "image-anim",
   "compatibility_date": "2024-11-01",
-  "main": "src/index.ts",
-  "name": "img-gen",
   "upload_source_maps": true,
-  "kv_namespaces": [
-    {
-      "binding": "IMAGES",
-      "id": "1a69151d-a880-4131-bf95-037554466deb"
-    }
-  ],
+  "main": "./server.ts",
+  "assets": {
+    "directory": "./build/client"
+  },
+  "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true
   },
-  "compatibility_flags": ["nodejs_compat"]
+  "kv_namespaces": [
+    {
+      "binding": "IMAGES",
+      "id": "0dc7110385ec4ce88d7061b8c16b36b9"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  }
 }

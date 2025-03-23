@@ -1,13 +1,17 @@
-# OpenAuth Server
+# To-Do List App
 
-![OpenAuth Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/b2ff10c6-8f7c-419f-8757-e2ccf1c84500/public)
+![To-Do List Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/923473bc-a285-487c-93db-e0ddea3d3700/public)
 
 <!-- dash-content-start -->
 
-[OpenAuth](https://openauth.js.org/) is a universal provider for managing user authentication. By deploying OpenAuth on Cloudflare Workers, you can add scalable authentication to your application. This demo showcases login, user registration, and password reset, with storage and state powered by [D1](https://developers.cloudflare.com/d1/) and [KV](https://developers.cloudflare.com/kv/).
+Manage your to-do list with [Cloudflare Workers Assets](https://developers.cloudflare.com/workers/static-assets/) + [Remix](https://remix.run/) + [Cloudflare Workers KV](https://developers.cloudflare.com/kv/).
+
+## How It Works
+
+This is a simple to-do list app that allows you to add, remove, and mark tasks as complete. The project is a Cloudflare Workers Assets application built with Remix. It uses Cloudflare Workers KV to store the to do list items. The [Remix Vite Plugin](https://remix.run/docs/en/main/guides/vite#vite) has a Cloudflare Dev Proxy that enables you to use [Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/) provided by the Cloudflare Developer Platform.
 
 > [!IMPORTANT]
-> When using C3 to create this project, select "no" when it asks if you want to deploy. You need to follow this project's [setup steps](https://github.com/cloudflare/templates/tree/main/img-gen#setup-steps) before deploying.
+> When using C3 to create this project, select "no" when it asks if you want to deploy. You need to follow this project's [setup steps](https://github.com/cloudflare/templates/tree/main/image-anim#setup-steps) before deploying.
 
 <!-- dash-content-end -->
 
@@ -16,10 +20,10 @@
 Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
 
 ```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/img-gen
+npm create cloudflare@latest -- --template=cloudflare/templates/image-anim
 ```
 
-A live public deployment of this template is available at [https://img-gen.templates.workers.dev](https://img-gen.templates.workers.dev)
+A live public deployment of this template is available at [https://image-anim.templates.workers.dev](https://image-anim.templates.workers.dev)
 
 ## Setup Steps
 
@@ -27,21 +31,12 @@ A live public deployment of this template is available at [https://img-gen.templ
    ```bash
    npm install
    ```
-2. Create a [D1 database](https://developers.cloudflare.com/d1/get-started/) with the name "imgGen-d1":
+2. Create a [kv namespace](https://developers.cloudflare.com/kv/get-started/) with a binding named "TO_DO_LIST":
    ```bash
-   npx wrangler d1 create imgGen-d1
-   ```
-   ...and update the `database_id` field in `wrangler.json` with the new database ID.
-3. Run the following db migration to initialize the database (notice the `migrations` directory in this project):
-   ```bash
-   npx wrangler d1 migrations apply --remote imgGen-d1
-   ```
-4. Create a [kv namespace](https://developers.cloudflare.com/kv/get-started/) with a binding named "AUTH_STORAGE":
-   ```bash
-   npx wrangler kv namespace create AUTH_STORAGE
+   npx wrangler kv namespace create TO_DO_LIST
    ```
    ...and update the `kv_namespaces` -> `id` field in `wrangler.json` with the new namespace ID.
-5. Deploy the project!
+3. Deploy the project!
    ```bash
    npx wrangler deploy
    ```
