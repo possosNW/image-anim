@@ -19,42 +19,61 @@ export default function Index() {
     return new Promise((resolve, reject) => {
       const img = new Image();
   
+      img.crossOrigin = "anonymous"; // âœ… Ensure CORS support when loading external images
+  
       img.onload = () => {
-        const canvas = document.createElement("canvas");
+        console.log("âœ… Image loaded:", img.width, img.height);
+  
         const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
+        const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
   
         const ctx = canvas.getContext("2d");
-        if (!ctx) return reject("âŒ Failed to get canvas context");
+        if (!ctx) {
+          console.error("âŒ Failed to get canvas context");
+          return reject("Failed to get canvas context");
+        }
   
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   
-        const base64 = canvas.toDataURL("image/png");
-  
-        // âœ… Check base64 length/size
-        const byteString = atob(base64.split(",")[1]);
-        const byteLength = byteString.length;
-        const sizeKB = (byteLength / 1024).toFixed(2);
-  
-        console.log(`âœ… Resized image: ${canvas.width}x${canvas.height}`);
-        console.log(`í ½í³¦ Approx size: ${sizeKB} KB`);
-  
-        if (canvas.width > maxWidth || canvas.height > maxHeight) {
-          console.warn("âš ï¸ Image dimensions exceed expected limits");
+        // âœ… Success validation
+        if (
+          canvas.width > maxWidth ||
+          canvas.height > maxHeight ||
+          canvas.width <= 0 ||
+          canvas.height <= 0
+        ) {
+          console.warn(
+            "âš ï¸ Resized image has unexpected dimensions:",
+            canvas.width,
+            canvas.height
+          );
+          return reject("Image dimensions out of bounds");
         }
+  
+        const base64 = canvas.toDataURL("image/png");
+        console.log("í ½í³¦ Resized image size:", base64.length, "bytes");
+        console.log(`í ½í³ Final size: ${canvas.width}x${canvas.height}`);
   
         resolve(base64);
       };
   
-      img.onerror = (err) => {
-        reject(`âŒ Failed to load image: ${err}`);
+      img.onerror = (e) => {
+        console.error("âŒ Image load error", e);
+        reject("Failed to load image");
       };
   
-      img.src = URL.createObjectURL(imageBlob);
+      const url = URL.createObjectURL(imageBlob);
+      console.log("í ¾í·ª Blob URL:", url);
+      img.src = url;
+  
+      // í ½í±‡ Optional: Cleanup blob after load
+      img.onloadend = () => {
+        URL.revokeObjectURL(url);
+      };
     });
   };
-
 
   const handleGenerate = async (formData: FormData) => {
     try {
