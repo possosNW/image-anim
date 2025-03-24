@@ -11,23 +11,50 @@ export default function Index() {
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const resizeImageToBase64 = (imageBlob: Blob, maxWidth = 512, maxHeight = 512): Promise<string> => {
+  const resizeImageToBase64 = (
+    imageBlob: Blob,
+    maxWidth = 256,
+    maxHeight = 256
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
+  
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+  
         const ctx = canvas.getContext("2d");
-        if (!ctx) return reject("Failed to get canvas context");
+        if (!ctx) return reject("âŒ Failed to get canvas context");
+  
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL("image/png"));
+  
+        const base64 = canvas.toDataURL("image/png");
+  
+        // âœ… Check base64 length/size
+        const byteString = atob(base64.split(",")[1]);
+        const byteLength = byteString.length;
+        const sizeKB = (byteLength / 1024).toFixed(2);
+  
+        console.log(`âœ… Resized image: ${canvas.width}x${canvas.height}`);
+        console.log(`í ½í³¦ Approx size: ${sizeKB} KB`);
+  
+        if (canvas.width > maxWidth || canvas.height > maxHeight) {
+          console.warn("âš ï¸ Image dimensions exceed expected limits");
+        }
+  
+        resolve(base64);
       };
-      img.onerror = reject;
+  
+      img.onerror = (err) => {
+        reject(`âŒ Failed to load image: ${err}`);
+      };
+  
       img.src = URL.createObjectURL(imageBlob);
     });
   };
+
 
   const handleGenerate = async (formData: FormData) => {
     try {
