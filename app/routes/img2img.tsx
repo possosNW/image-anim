@@ -1,3 +1,56 @@
+import { ActionFunctionArgs } from "@remix-run/cloudflare";
+
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  try {
+    const formData = await request.formData();
+    const delta = formData.get("delta");
+    const image_b64 = formData.get("image_b64");
+
+    if (typeof delta !== "string" || typeof image_b64 !== "string") {
+      console.error("Missing or invalid delta or image_b64");
+      return new Response("Missing delta prompt or base64 image", { status: 400 });
+    }
+
+    // Strip the data URL header
+    const base64Data = image_b64.replace(/^data:image\/png;base64,/, "");
+
+    console.log("Sending img2img with prompt:", delta);
+    console.log("Base64 image size:", base64Data.length);
+
+    const generated = await context.env.AI.run(
+      "@cf/runwayml/stable-diffusion-v1-5-img2img",
+      {
+        prompt: delta,
+        image_b64: base64Data,
+        strength: 0.8,
+        num_steps: 20
+      }
+    );
+
+    console.log("Delta image generated successfully");
+
+    return new Response(generated, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
+      },
+    });
+  } catch (err: any) {
+    console.error("img2img generation failed:", err);
+    return new Response(
+      `Error generating delta image: ${err.message || "Unknown error"}`,
+      { status: 500 }
+    );
+  }
+};
+
+export default function Img2Img() {
+  return null;
+}
+
+/*
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const delta = formData.get("delta");
@@ -15,7 +68,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     const imageBuffer = await image.arrayBuffer();
 
     const generated = await context.env.AI.run(
-      "@cf/stabilityai/stable-diffusion-v1-5-img2img",
+      "@cf/runwayml/stable-diffusion-v1-5-img2img",
       {
         prompt: delta,
         image: new Uint8Array(imageBuffer),
@@ -31,3 +84,4 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     return new Response("Error generating delta image", { status: 500 });
   }
 };
+*/
