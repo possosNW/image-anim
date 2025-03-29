@@ -1,4 +1,53 @@
 import { ActionFunctionArgs } from "@remix-run/cloudflare";
+import fs from "fs/promises";
+import path from "path";
+
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  try {
+    const formData = await request.formData();
+    const delta = formData.get("delta");
+
+    if (typeof delta !== "string") {
+      console.error("Missing or invalid delta prompt");
+      return new Response("Missing delta prompt", { status: 400 });
+    }
+
+    const imagePath = path.join(process.cwd(), "public", "generated.png");
+    const imageBuffer = await fs.readFile(imagePath);
+    const base64Data = imageBuffer.toString("base64");
+
+    const generated = await context.env.AI.run(
+      "@cf/runwayml/stable-diffusion-v1-5-img2img",
+      {
+        prompt: delta,
+        image_b64: base64Data,
+        strength: 0.8,
+        num_steps: 20,
+      }
+    );
+
+    return new Response(generated, {
+      headers: {
+        "Content-Type": "image/png",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
+  } catch (err: any) {
+    console.error("img2img generation failed:", err);
+    return new Response(`Error generating delta image: ${err.message || "Unknown error"}`, {
+      status: 500,
+    });
+  }
+};
+
+export default function Img2Img() {
+  return null;
+}
+
+/*
+import { ActionFunctionArgs } from "@remix-run/cloudflare";
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   try {
