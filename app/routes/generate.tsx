@@ -1,29 +1,38 @@
-import { ActionFunctionArgs } from "@remix-run/cloudflare";
+import type { ActionFunctionArgs } from "@remix-run/cloudflare";
 
-export const action = async ({ context }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const prompt = formData.get("prompt");
+
+  if (typeof prompt !== "string") {
+    return new Response("Invalid prompt", {
+      status: 400,
+      headers: { "Access-Control-Allow-Origin": "*" },
+    });
+  }
+
   try {
-    const resultStream: ReadableStream = await context.env.AI.run(
+    const stream = await context.env.AI.run(
       "@cf/stabilityai/stable-diffusion-xl-base-1.0",
-      {
-        prompt: "A fantasy castle on a hill at sunset",
-      }
+      { prompt }
     );
 
-    // Convert ReadableStream to ArrayBuffer
-    const resultArrayBuffer = await new Response(resultStream).arrayBuffer();
+    const arrayBuffer = await new Response(stream).arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    const base64 = Buffer.from(resultArrayBuffer).toString("base64");
+    // Store the image in KV
     await context.env.IMAGES.put("latest", base64);
 
-    return new Response("Image generated and stored in KV", { status: 200 });
-  } catch (err: any) {
-    console.error("Generation failed:", err);
-    return new Response(`Error generating image: ${err.message || "Unknown error"}`, {
+    return new Response(arrayBuffer, {
+      headers: {
+        "Content-Type": "image/png",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (err) {
+    return new Response("Error generating image", {
       status: 500,
+      headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 };
-
-export default function Generate() {
-  return null;
-}
