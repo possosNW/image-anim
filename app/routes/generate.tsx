@@ -7,7 +7,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   if (typeof prompt !== "string") {
     return new Response("Invalid prompt", {
       status: 400,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
     });
   }
 
@@ -20,8 +22,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     const arrayBuffer = await new Response(stream).arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    // Store the image in KV
+    // Save the image and the original prompt in KV
     await context.env.IMAGES.put("latest", base64);
+    await context.env.IMAGES.put("latest_prompt", prompt);
 
     return new Response(arrayBuffer, {
       headers: {
@@ -32,7 +35,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   } catch (err) {
     return new Response("Error generating image", {
       status: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
     });
   }
 };
