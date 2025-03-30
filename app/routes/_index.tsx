@@ -1,4 +1,3 @@
-
 // app/routes/_index.tsx
 import { useState } from "react";
 import { Form, useFetcher } from "@remix-run/react";
@@ -18,60 +17,27 @@ export default function Index() {
   ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-  
-      img.crossOrigin = "anonymous"; // âœ… Ensure CORS support when loading external images
-  
+      img.crossOrigin = "anonymous";
+
       img.onload = () => {
-        console.log("âœ… Image loaded:", img.width, img.height);
-  
         const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
         const canvas = document.createElement("canvas");
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
-  
+
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          console.error("âŒ Failed to get canvas context");
-          return reject("Failed to get canvas context");
-        }
-  
+        if (!ctx) return reject("Failed to get canvas context");
+
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  
-        // âœ… Success validation
-        if (
-          canvas.width > maxWidth ||
-          canvas.height > maxHeight ||
-          canvas.width <= 0 ||
-          canvas.height <= 0
-        ) {
-          console.warn(
-            "âš ï¸ Resized image has unexpected dimensions:",
-            canvas.width,
-            canvas.height
-          );
-          return reject("Image dimensions out of bounds");
-        }
-  
         const base64 = canvas.toDataURL("image/png");
-        console.log("í ½í³¦ Resized image size:", base64.length, "bytes");
-        console.log(`í ½í³ Final size: ${canvas.width}x${canvas.height}`);
-  
         resolve(base64);
       };
-  
-      img.onerror = (e) => {
-        console.error("âŒ Image load error", e);
-        reject("Failed to load image");
-      };
-  
+
+      img.onerror = (e) => reject("Failed to load image");
+
       const url = URL.createObjectURL(imageBlob);
-      console.log("í ¾í·ª Blob URL:", url);
       img.src = url;
-  
-      // í ½í±‡ Optional: Cleanup blob after load
-      img.onloadend = () => {
-        URL.revokeObjectURL(url);
-      };
+      img.onloadend = () => URL.revokeObjectURL(url);
     });
   };
 
@@ -86,17 +52,13 @@ export default function Index() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error generating image: ${errorText}`);
-      }
+      if (!response.ok) throw new Error(await response.text());
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       setBaseImage(url);
       setLatestImage(url);
     } catch (error: any) {
-      console.error("Generation error:", error);
       setErrorMessage(`Failed to generate image: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -124,16 +86,12 @@ export default function Index() {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error generating delta image: ${errorText}`);
-      }
+      if (!response.ok) throw new Error(await response.text());
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       setLatestImage(url);
     } catch (error: any) {
-      console.error("Delta application error:", error);
       setErrorMessage(`Failed to apply delta: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -142,16 +100,21 @@ export default function Index() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row">
-      <div className="w-full md:w-1/3 p-4 space-y-4">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100 text-gray-800">
+      <div className="w-full md:w-1/3 p-6 space-y-6 bg-white shadow-md overflow-y-auto">
         <fetcher.Form method="post" encType="multipart/form-data" onSubmit={(e) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
           handleGenerate(formData);
-        }}>
-          <label className="block mb-2">Main Prompt</label>
-          <input name="prompt" className="w-full border p-2 mb-2" required />
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+        }} className="space-y-4">
+          <h2 className="text-xl font-semibold">Generate Base Image</h2>
+          <label className="block text-sm font-medium">Main Prompt</label>
+          <textarea name="prompt" rows={4} className="w-full border rounded px-3 py-2 resize-y overflow-auto" required />
+
+          <label className="block text-sm font-medium">Negative Prompt (optional)</label>
+          <textarea name="negative_prompt" rows={3} className="w-full border rounded px-3 py-2 resize-y overflow-auto" />
+
+          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
             Generate Image
           </button>
         </fetcher.Form>
@@ -160,14 +123,24 @@ export default function Index() {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
           handleDelta(formData);
-        }}>
-          <label className="block mb-2">Delta Prompt</label>
-          <input name="delta" className="w-full border p-2 mb-2" required />
-          <button 
-            type="submit" 
-            className="w-full bg-green-500 text-white p-2 rounded"
-            disabled={!baseImage || isLoading}
-          >
+        }} className="space-y-4">
+          <h2 className="text-xl font-semibold">Apply Delta</h2>
+          <label className="block text-sm font-medium">Delta Prompt</label>
+          <textarea name="delta" rows={4} className="w-full border rounded px-3 py-2 resize-y overflow-auto" required />
+
+          <label className="block text-sm font-medium">Steps (max 20)</label>
+          <input name="num_steps" type="number" min="1" max="20" defaultValue="20" className="w-full border rounded px-3 py-2" />
+
+          <label className="block text-sm font-medium">Strength (max 1)</label>
+          <input name="strength" type="number" step="0.05" min="0.1" max="1" defaultValue="1" className="w-full border rounded px-3 py-2" />
+
+          <label className="block text-sm font-medium">Guidance Scale</label>
+          <input name="guidance_scale" type="number" step="0.1" defaultValue="7.5" className="w-full border rounded px-3 py-2" />
+
+          <label className="block text-sm font-medium">Seed (optional)</label>
+          <input name="seed" type="number" className="w-full border rounded px-3 py-2" />
+
+          <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700" disabled={!baseImage || isLoading}>
             Apply Delta
           </button>
         </fetcher.Form>
@@ -179,31 +152,31 @@ export default function Index() {
         )}
 
         {isLoading && loadingMessage && (
-          <div className="text-gray-500 flex items-center">
-            <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+          <div className="text-gray-600 flex items-center space-x-2">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {loadingMessage}
+            <span>{loadingMessage}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="text-red-500 p-2 border border-red-300 bg-red-50 rounded">
+          <div className="text-red-500 p-3 border border-red-300 bg-red-100 rounded">
             {errorMessage}
           </div>
         )}
       </div>
 
-      <div className="w-full md:w-2/3 p-4">
+      <div className="w-full md:w-2/3 p-6 flex flex-col gap-6">
         <div className="flex flex-col md:flex-row gap-4">
           {baseImage && (
             <div className="w-full md:w-1/2">
-              <h3 className="text-center mb-2">Base Image</h3>
+              <h3 className="text-lg font-medium text-center mb-2">Base Image</h3>
               <img
                 src={baseImage}
                 alt="Base"
-                className="w-full border cursor-pointer"
+                className="w-full border rounded cursor-pointer shadow"
                 onClick={() => setLatestImage(baseImage)}
               />
             </div>
@@ -211,8 +184,8 @@ export default function Index() {
 
           {latestImage && latestImage !== baseImage && (
             <div className="w-full md:w-1/2">
-              <h3 className="text-center mb-2">Latest Generated Image</h3>
-              <img src={latestImage} alt="Latest" className="w-full border" />
+              <h3 className="text-lg font-medium text-center mb-2">Latest Generated Image</h3>
+              <img src={latestImage} alt="Latest" className="w-full border rounded shadow" />
             </div>
           )}
         </div>
