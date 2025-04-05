@@ -79,7 +79,8 @@ export default function Index() {
 
       const baseBlob = await fetch(baseImage).then((res) => res.blob());
       const resizedBase64 = await resizeImageToBase64(baseBlob);
-      formData.set("image_b64", resizedBase64);
+      const cleanBase64 = resizedBase64.replace(/^data:image\/(png|jpeg);base64,/, "");
+      formData.set("image_b64", cleanBase64);
 
       const response = await fetch("/img2img", {
         method: "POST",
