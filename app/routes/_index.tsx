@@ -140,6 +140,18 @@ export default function Index() {
           <label className="block text-sm font-medium">Delta Prompt</label>
           <textarea name="delta" rows={4} className="w-full border rounded px-3 py-2 resize-y overflow-auto" required />
 
+          <label className="block text-sm font-medium">Steps (max 20)</label>
+          <input name="num_steps" type="number" min="1" max="20" defaultValue="20" className="w-full border rounded px-3 py-2" />
+          
+          <label className="block text-sm font-medium">Strength (max 1)</label>
+          <input name="strength" type="number" step="0.05" min="0.1" max="1" defaultValue="0.75" className="w-full border rounded px-3 py-2" />
+          
+          <label className="block text-sm font-medium">Guidance Scale</label>
+          <input name="guidance_scale" type="number" step="0.1" defaultValue="7.5" className="w-full border rounded px-3 py-2" />
+          
+          <label className="block text-sm font-medium">Seed (optional)</label>
+          <input name="seed" type="number" className="w-full border rounded px-3 py-2" />
+
           <button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700" disabled={!baseImage || isLoading}>
             Apply Delta
           </button>
