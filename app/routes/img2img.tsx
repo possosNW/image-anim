@@ -1,34 +1,34 @@
-
-import type { ActionFunctionArgs } from "@remix-run/cloudflare";
-
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const delta = formData.get("delta");
+  const image_b64 = formData.get("image_b64")?.toString();
+  const numSteps = parseInt(formData.get("num_steps") as string);
+  const strength = parseFloat(formData.get("strength") as string);
+  const guidance = parseFloat(formData.get("guidance_scale") as string);
+  const seedRaw = formData.get("seed");
+  const seed = seedRaw ? parseInt(seedRaw as string) : undefined;
 
-  if (typeof delta !== "string") {
-    return new Response("Missing delta prompt", {
+  if (!image_b64 || typeof delta !== "string") {
+    return new Response("Missing required parameters", {
       status: 400,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
   }
 
-  const base64 = await context.env.IMAGES.get("latest");
-
-  if (!base64) {
-    return new Response("No image found in KV", {
-      status: 404,
-      headers: { "Access-Control-Allow-Origin": "*" },
-    });
-  }
-
   try {
+    const payload: Record<string, any> = {
+      prompt: delta,
+      image_b64,
+      strength: isNaN(strength) ? 0.75 : strength,
+    };
+
+    if (!isNaN(numSteps)) payload.num_steps = numSteps;
+    if (!isNaN(guidance)) payload.guidance = guidance;
+    if (!isNaN(seed)) payload.seed = seed;
+
     const result = await context.env.AI.run(
       "@cf/runwayml/stable-diffusion-v1-5-img2img",
-      {
-        prompt: delta,
-        image_b64: base64,
-        strength: 0.75,
-      }
+      payload
     );
 
     const arrayBuffer = await new Response(result).arrayBuffer();
