@@ -26,6 +26,8 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     if (!isNaN(guidance)) payload.guidance = guidance;
     if (!isNaN(seed)) payload.seed = seed;
 
+    console.log("Payload:", JSON.stringify(payload, null, 2));
+
     const result = await context.env.AI.run(
       "@cf/runwayml/stable-diffusion-v1-5-img2img",
       payload
@@ -39,8 +41,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         "Access-Control-Allow-Origin": "*",
       },
     });
-  } catch (err) {
-    return new Response("Error generating variation", {
+  } catch (err: any) {
+    console.error("img2img error:", err);
+    return new Response("Error generating variation: " + err.message, {
       status: 500,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
